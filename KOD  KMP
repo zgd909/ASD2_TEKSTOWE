@@ -1,0 +1,126 @@
+static int[] ComputeLPSArray(string s)
+    {
+        int n = s.Length;
+        int[] lps = new int[n];
+        lps[0] = 0;
+
+        for (int i = 1; i < n; i++)
+        {
+            int j = lps[i - 1];
+            while (j > 0 && s[i] != s[j])
+            {
+                j = lps[j - 1];
+            }
+            if (s[i] == s[j]) j++;
+            lps[i] = j;
+        }
+        return lps;
+    }
+
+
+ public static int Period(string s)
+    {
+        int[] lps = ComputeLPSArray(s);
+        int n = s.Length;
+        int p = n - lps[n - 1];
+        if (n % p == 0)
+            return p;
+        else
+            return n;
+    }
+
+
+public static Tuple<int, int, int> MaxPower(string s)
+{
+    int n = s.Length;
+    int maxK = 1;
+    int startIndex = 0;
+    int endIndex = 1;
+
+    for (int start = 0; start < n; start++)
+    {
+        int length = n - start;
+        int[] lps = new int[length];
+        lps[0] = 0;
+
+        for (int i = 1; i < length; i++)
+        {
+            int j = lps[i - 1];
+
+            // Dopasowanie znaków względem oryginalnego stringa
+            while (j > 0 && s[start + i] != s[start + j])
+            {
+                j = lps[j - 1];
+            }
+
+            if (s[start + i] == s[start + j]) j++;
+
+            lps[i] = j;
+
+            int currentLength = i + 1;
+            int p = currentLength - lps[i];
+
+            if (currentLength % p == 0)
+            {
+                int k = currentLength / p;
+                if (k > maxK)
+                {
+                    maxK = k;
+                    startIndex = start;
+                    endIndex = start + currentLength;
+                }
+            }
+        }
+    }
+
+    return Tuple.Create(maxK, startIndex, endIndex);
+}
+
+
+
+
+   public static List<int> KMPSearch(string text, string pattern)
+    {
+        int n = text.Length;
+        int m = pattern.Length;
+        
+        List<int> results = new List<int>();
+        
+        if (m == 0 || n == 0)
+            return results;
+        
+
+        int[] lps = ComputeLPS(pattern);
+        
+        int i = 0; // indeks dla tekstu
+        int j = 0; // indeks dla wzorca
+        
+        while (i < n)
+        {
+            if (pattern[j] == text[i])
+            {
+                i++;
+                j++;
+            }
+            
+            if (j == m)
+            {
+                // Znaleziono wzorzec
+                results.Add(i - j);
+                j = lps[j - 1];
+            }
+            else if (i < n && pattern[j] != text[i])
+            {
+                if (j != 0)
+                {
+                    j = lps[j - 1];
+                }
+                else
+                {
+                    i++;
+                }
+            }
+        }
+        
+        return results;
+    }
