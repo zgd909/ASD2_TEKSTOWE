@@ -18,62 +18,84 @@ static int[] ComputeLPSArray(string s)
     }
 
 
- public static int Period(string s)
+    static public int Period(this string s)
     {
-        int[] lps = ComputeLPSArray(s);
         int n = s.Length;
-        int p = n - lps[n - 1];
-        if (n % p == 0)
-            return p;
-        else
-            return n;
+        int[] P = ComputeLPSArray(s);
+        int longestBorder = P[n - 1];
+        int period = n - longestBorder;
+
+        return period;
     }
 
 
-public static Tuple<int, int, int> MaxPower(string s)
+static public int MaxPower(this string s, out int startIndex, out int endIndex)
 {
-    int n = s.Length;
-    int maxK = 1;
-    int startIndex = 0;
-    int endIndex = 1;
+    startIndex = 0;
+    endIndex = 1;
 
+    if (string.IsNullOrEmpty(s))
+    {
+        endIndex = 0;
+        return 0;
+    }
+
+    int n = s.Length;
+    int maxPower = 1;
+    int bestStart = 0;
+    int bestEnd = 1;
+
+    // Dla każdego możliwego początku podsłowa
     for (int start = 0; start < n; start++)
     {
-        int length = n - start;
-        int[] lps = new int[length];
-        lps[0] = 0;
+        // Oblicz tablicę KMP dla sufiksu zaczynającego się od pozycji start
+        // Robimy to bezpośrednio na indeksach, bez tworzenia podciągu
+        int suffixLength = n - start;
+        int[] P = new int[suffixLength];
 
-        for (int i = 1; i < length; i++)
+        // Algorytm KMP bezpośrednio na indeksach
+        int j = 0;
+        for (int i = 1; i < suffixLength; i++)
         {
-            int j = lps[i - 1];
-
-            // Dopasowanie znaków względem oryginalnego stringa
             while (j > 0 && s[start + i] != s[start + j])
             {
-                j = lps[j - 1];
+                j = P[j - 1];
             }
 
-            if (s[start + i] == s[start + j]) j++;
-
-            lps[i] = j;
-
-            int currentLength = i + 1;
-            int p = currentLength - lps[i];
-
-            if (currentLength % p == 0)
+            if (s[start + i] == s[start + j])
             {
-                int k = currentLength / p;
-                if (k > maxK)
+                j++;
+            }
+
+            P[i] = j;
+        }
+
+        // Sprawdź wszystkie prefiksy tego sufiksu
+        for (int length = 1; length <= suffixLength; length++)
+        {
+            int end = start + length;
+
+            // Border dla podsłowa s[start...end-1] to P[length-1]
+            int longestBorder = P[length - 1];
+            int period = length - longestBorder;
+
+            // Sprawdź, czy podsłowo jest potęgą
+            if (period > 0 && length % period == 0)
+            {
+                int power = length / period;
+                if (power > maxPower)
                 {
-                    maxK = k;
-                    startIndex = start;
-                    endIndex = start + currentLength;
+                    maxPower = power;
+                    bestStart = start;
+                    bestEnd = end;
                 }
             }
         }
     }
 
-    return Tuple.Create(maxK, startIndex, endIndex);
+    startIndex = bestStart;
+    endIndex = bestEnd;
+    return maxPower;
 }
 
 
